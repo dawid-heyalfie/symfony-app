@@ -31,7 +31,7 @@ final class PropertyController extends AbstractController
         $this->filterService = $filterService;
         $this->paginationService = $paginationService;
     }
-    #[Route('/properties', name: 'app_property_index', methods: ['GET'])]
+    #[Route('api/properties', name: 'app_property_index', methods: ['GET'])]
     public function index(
         Request $request,
         SerializerInterface $serializer
@@ -51,7 +51,7 @@ final class PropertyController extends AbstractController
             'meta' => $paginationMeta,
         ]);
     }
-    #[Route('/properties/{slug}', name: 'app_property_show', methods: ['GET'])]
+    #[Route('api/properties/{slug}', name: 'app_property_show', methods: ['GET'])]
     public function show(string $slug, PropertyRepository $propertyRepository): Response
     {
         $property = $propertyRepository->findOneBySlug($slug);
@@ -63,7 +63,7 @@ final class PropertyController extends AbstractController
         return $this->json($property);
     }
 
-    #[Route('/properties', name: 'app_property_create', methods: ['POST'])]
+    #[Route('api/auth/properties', name: 'app_property_create', methods: ['POST'])]
     public function create(
         Request $request,
         EntityManagerInterface $entityManager,
@@ -98,7 +98,7 @@ final class PropertyController extends AbstractController
     }
 
 
-    #[Route('properties/{id}', name: 'app_property_update', methods: ['PUT'])]
+    #[Route('api/auth/properties/{id}', name: 'app_property_update', methods: ['PUT'])]
     public function update(
         Request $request,
         Property $property,
@@ -122,7 +122,7 @@ final class PropertyController extends AbstractController
         return new JsonResponse($serializer->serialize($property, 'json'), Response::HTTP_OK, [], true);
     }
 
-    #[Route('properties/{id}', name: 'app_property_delete', methods: ['DELETE'])]
+    #[Route('api/auth/properties/{id}', name: 'app_property_delete', methods: ['DELETE'])]
     public function delete(Property $property, EntityManagerInterface $entityManager): Response
     {
         $entityManager->remove($property);
