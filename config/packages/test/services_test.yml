@@ -1,0 +1,4 @@
+services:
+    test.client:
+        class: Symfony\Bundle\FrameworkBundle\KernelBrowser
+        factory: ['@test.client.factory', createClient]
