@@ -7,6 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[ORM\Entity(repositoryClass: PropertyRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -48,6 +49,9 @@ class Property
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $updatedAt = null;
 
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $owner = null;
 
     #[ORM\PrePersist]
     public function onPrePersist(): void
@@ -134,5 +138,27 @@ class Property
     public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
+    }
+
+    /**
+     * @return array|null
+     */
+
+    public function getOwner(): ?array
+    {
+        // Return only the email of the owner
+        return $this->owner ? ['email' => $this->owner->getEmail()] : null;
+    }
+    #[Ignore]
+    public function getOwnerObject(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(User $owner): self
+    {
+        $this->owner = $owner;
+
+        return $this;
     }
 }

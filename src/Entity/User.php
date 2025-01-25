@@ -31,6 +31,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
+    public const ROLE_USER = 'ROLE_USER';
+    public const ROLE_ADMIN = 'ROLE_ADMIN';
+    public const ROLE_PROPERTY_MANAGER = 'ROLE_PROPERTY_MANAGER';
+
     public function getId(): ?int
     {
         return $this->id;

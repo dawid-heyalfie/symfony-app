@@ -70,6 +70,18 @@ final class PropertyController extends AbstractController
         SerializerInterface $serializer,
         FormFactoryInterface $formFactory
     ): Response {
+        if (
+            !$this->isGranted('ROLE_ADMIN') &&
+            !$this->isGranted('ROLE_PROPERTY_MANAGER')
+        ) {
+            return new JsonResponse(
+                [
+                    'error' => 'Access denied. You do not have the required permissions.'
+                ],
+                Response::HTTP_FORBIDDEN
+            );
+        }
+
         $property = new Property();
 
         $form = $formFactory->create(PropertyType::class, $property);
@@ -84,10 +96,11 @@ final class PropertyController extends AbstractController
             return new JsonResponse(['error' => $errors], Response::HTTP_BAD_REQUEST);
         }
 
+        // Assign the currently authenticated user as the owner
+        $property->setOwner($this->getUser());
+
         $entityManager->persist($property);
-
         $entityManager->flush();
-
 
         return new JsonResponse(
             $serializer->serialize($property, 'json'),
@@ -98,6 +111,7 @@ final class PropertyController extends AbstractController
     }
 
 
+
     #[Route('api/auth/properties/{id}', name: 'app_property_update', methods: ['PUT'])]
     public function update(
         Request $request,
@@ -106,6 +120,18 @@ final class PropertyController extends AbstractController
         SerializerInterface $serializer,
         FormFactoryInterface $formFactory
     ): Response {
+        if (
+            !$this->isGranted('ROLE_ADMIN') &&
+            !($this->isGranted('ROLE_PROPERTY_MANAGER') &&
+                $this->getUser()->getId() === $property->getOwnerObject()->getId())
+        ) {
+            return new JsonResponse(
+                [
+                    'error' => 'Access denied. You do not have the required permissions.'
+                ],
+                Response::HTTP_FORBIDDEN
+            );
+        }
         $form = $formFactory->create(PropertyType::class, $property);
         $form->submit(json_decode($request->getContent(), true), false);
 
@@ -125,10 +151,23 @@ final class PropertyController extends AbstractController
     #[Route('api/auth/properties/{id}', name: 'app_property_delete', methods: ['DELETE'])]
     public function delete(Property $property, EntityManagerInterface $entityManager): Response
     {
+        if (
+            !$this->isGranted('ROLE_ADMIN') &&
+            !($this->isGranted('ROLE_PROPERTY_MANAGER') &&
+                $this->getUser()->getId() === $property->getOwnerObject()->getId())
+        ) {
+            return new JsonResponse(
+                [
+                    'error' => 'Access denied. You do not have the required permissions.'
+                ],
+                Response::HTTP_FORBIDDEN
+            );
+        }
+        $propertyId = $property->getId();
         $entityManager->remove($property);
         $entityManager->flush();
 
-        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+        return new JsonResponse("Property with ID: $propertyId deleted.", Response::HTTP_OK);
     }
 
 

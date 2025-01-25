@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Property;
+use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
@@ -21,7 +22,15 @@ class PropertyFixtures extends Fixture
     {
         $faker = Factory::create();
 
-        // Predefined properties
+        // Create a single user to own all properties
+        $user = new User();
+        $user->setEmail('owner@example.com')
+            ->setPassword(password_hash('password', PASSWORD_BCRYPT))
+            ->setRoles(['ROLE_USER', 'ROLE_PROPERTY_MANAGER']);
+
+        $manager->persist($user);
+        $manager->flush();
+
         $propertiesData = [
             [
                 'title' => 'Luxury Apartment in Downtown',
@@ -50,19 +59,21 @@ class PropertyFixtures extends Fixture
             $property->setTitle($data['title'])
                 ->setDescription($data['description'])
                 ->setPrice($data['price'])
-                ->setSlug($this->slugTransformer->reverseTransform($data['title'])); // Use transformer for slug
+                ->setSlug($this->slugTransformer->reverseTransform($data['title']))
+                ->setOwner($user);
 
             $manager->persist($property);
         }
 
         // Randomized properties
         for ($i = 0; $i < 20; $i++) {
-            $title = $faker->realText(30); // Random title
+            $title = $faker->realText(30);
             $property = new Property();
             $property->setTitle($title)
-                ->setDescription($faker->realText(200)) // Random description
-                ->setPrice($faker->randomFloat(2, 50000, 1000000)) // Random price
-                ->setSlug($this->slugTransformer->reverseTransform($title)); // Use transformer for slug
+                ->setDescription($faker->realText(200))
+                ->setPrice($faker->randomFloat(2, 50000, 1000000))
+                ->setSlug($this->slugTransformer->reverseTransform($title))
+                ->setOwner($user);
 
             $manager->persist($property);
         }
